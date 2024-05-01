@@ -28,6 +28,10 @@ templates = Jinja2Templates(directory="static")
 async def read_index(request: Request):
     return templates.TemplateResponse("index.html", context={"request":request})
 
+@app.get("/health")
+async def health_check():
+    return {"status": "OK"}
+
 @app.post("/", response_class=RedirectResponse)
 async def create_plan(request: Request, goal_input: str = Form(...)):
 
