@@ -12,7 +12,11 @@ Using the Azure Developer CLI, you can deploy the app to Azure Container Instanc
 azd auth login
 ```
 
-3) Create a gpt deployment in Azure OpenAI and get the API key. Once you have all of the credentials needed, create and add them to a `.env` file in the root of the project.
+3) Create a gpt deployment in Azure OpenAI and choose a method to authenticate. This repositiry can handle 3 ways of authentication. 
+
+- We recommend using (keyless authentication (via Entra Identity))[https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/managed-identity] to authenticate, as it is security best practice. The code in this project has already been written to enable keyless authentication, but you will need to set up permissions either via Azure CLI or in the Azure Portal for it to work. Read this [blog](https://techcommunity.microsoft.com/t5/microsoft-developer-community/using-keyless-authentication-with-azure-openai/ba-p/4111521) for detailed steps on how to do so. 
+
+- You may also authenticate using Azure OpenAI keys. Create you Azure OpenAI resource in the Azure portal and collect the necessary credentials (listed below). Once you have all of the credentials needed, create and add them to a `.env` file in the root of the project.
 
 ```bash
 AZURE_OPENAI_API_KEY=""

@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.identity import get_bearer_token_provider
 from fastapi.templating import Jinja2Templates
 from openai import AzureOpenAI
 
@@ -12,10 +14,28 @@ import os
 
 load_dotenv()
 
+
+client_args ={}
+
+# Authenticate using an API key (not recommended for production)
+if os.getenv("AZURE_OPENAI_KEY"):
+  client_args["api_key"] = os.getenv("AZURE_OPENAI_KEY")
+else:
+  if client_id := os.getenv("AZURE_OPENAI_CLIENT_ID"):
+    # Authenticate using a user-assigned managed identity on Azure
+    azure_credential = ManagedIdentityCredential(
+      client_id=client_id)
+  else:
+    # Authenticate using the default Azure credential chain
+    azure_credential = DefaultAzureCredential(exclude_managed_identity_credential=True)
+  client_args["azure_ad_token_provider"] = get_bearer_token_provider(
+    azure_credential, "https://cognitiveservices.azure.com/.default")
+
+# Initialize the AzureOpenAI client
 client = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
+    api_version=os.getenv('AZURE_OPENAI_API_VERSION') or "2024-02-15-preview",
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    **client_args,
 )
 
 app = FastAPI()
