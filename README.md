@@ -1,5 +1,33 @@
 # Productivity App
-This is an app that helps you acheieve your goals with llms and python. This app allows a user to input a goal and have an LLM generate a plan for how to achieve the goal.. 
+This is an app that helps you acheieve your goals with llms and python. This app allows a user to input a goal and have an LLM generate a plan for how to achieve the goal..
+
+## Deploy the application with the Azure Developer CLI
+Using the Azure Developer CLI, you can deploy the app to Azure Container Instances. Follow these steps to deploy the app:
+
+1) Clone this repository to your local machine.
+
+2) Login to the Azure ising the Azd CLI
+
+```bash
+azd auth login
+```
+
+3) Create a gpt deployment in Azure OpenAI and get the API key. Once you have all of the credentials needed, create and add them to a `.env` file in the root of the project.
+
+```bash
+AZURE_OPENAI_API_KEY=""
+AZURE_OPENAI_ENDPOINT=""
+AZURE_OPENAI_MODEL=""
+AZURE_OPENAI_API_VERSION=""
+```
+
+4) Deploy the application using the Azure Developer CLI
+
+```bash
+azd up
+```
+
+5) ⏳ Wait until the deployment has finished and navigate to the URL provided in the output to access the app.
 
 ## Running the app locally within a virtual environment
 To run this Python app using a virtual environment (venv), follow these steps:
