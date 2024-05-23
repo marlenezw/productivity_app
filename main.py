@@ -27,14 +27,14 @@ else:
       client_id=client_id)
   else:
     # Authenticate using the default Azure credential chain
-    azure_credential = DefaultAzureCredential(exclude_managed_identity_credential=True)
+    azure_credential = DefaultAzureCredential()
   client_args["azure_ad_token_provider"] = get_bearer_token_provider(
     azure_credential, "https://cognitiveservices.azure.com/.default")
 
 # Initialize the AzureOpenAI client
 client = AzureOpenAI(
     api_version=os.getenv('AZURE_OPENAI_API_VERSION') or "2024-02-15-preview",
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    azure_endpoint=f"https://{os.getenv('AZURE_OPENAI_SERVICE')}.openai.azure.com",
     **client_args,
 )
 
@@ -59,7 +59,7 @@ async def create_plan(request: Request, goal_input: str = Form(...)):
 
     response = client.chat.completions.create(
         
-        model=os.getenv("AZURE_OPENAI_MODEL"),
+        model=os.getenv("AZURE_OPENAI_GPT_DEPLOYMENT"),
         messages=[
             {"role": "user", "content": f"I want to achieve the following goal: {goal}. Can you create a simple plan to achieve this? Return the results in HTML format, but do not include the html and body tags."}
         ],
