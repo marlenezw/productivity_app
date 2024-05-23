@@ -1,81 +1,81 @@
 # Productivity App
-This is an app that helps you acheieve your goals with llms and python. This app allows a user to input a goal and have an LLM generate a plan for how to achieve the goal..
+This is an app that helps you acheieve your goals with LLMs and Python. It allows a user to input a goal and have an LLM generate a plan for how to achieve that goal.
 
-## Deploy the application with the Azure Developer CLI
-Using the Azure Developer CLI, you can deploy the app to Azure Container Instances. Follow these steps to deploy the app:
+The repository also provisions an Azure OpenAI account with an RBAC role permission for your user account to access,
+so that you can use the OpenAI API SDKs with keyless (Entra) authentication. By default, the account will include a gpt-3.5 model, but you can modify `infra/main.bicep` to deploy other models instead.
 
-1) Clone this repository to your local machine.
+## Prerequisites
 
-2) Login to the Azure ising the Azd CLI
+1. Sign up for a [free Azure account](https://azure.microsoft.com/free/) and create an Azure Subscription.
+2. Request access to Azure OpenAI Service by completing the form at [https://aka.ms/oai/access](https://aka.ms/oai/access) and awaiting approval.
+3. Install the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd).
+   
+## Provisioning and testing the app
 
-```bash
-azd auth login
+1. Clone this repository to your local machine.
+```shell
+git clone https://github.com/marlenezw/productivity_app.git
+cd productivity_app 
 ```
 
-3) Create a gpt deployment in Azure OpenAI and choose a method to authenticate.
-   This repository can handle 2 ways of authentication: 
-- Keyless Authentication: We recommend using (keyless authentication [via Entra Identity](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/managed-identity) to authenticate, as it is security best practice. The code in this project has already been written to enable keyless authentication, but you will need to set up permissions either via Azure CLI or in the Azure Portal for it to work. Read this [blog](https://techcommunity.microsoft.com/t5/microsoft-developer-community/using-keyless-authentication-with-azure-openai/ba-p/4111521) for detailed steps on how to do so. 
+2. Login to Azure:
 
-- API Key Authentication: You may also authenticate using Azure OpenAI keys. Create you Azure OpenAI resource in the Azure portal and collect the necessary credentials (listed below). Once you have all of the credentials needed, create and add them to a `.env` file in the root of the project.
+    ```shell
+    azd auth login
+    ```
 
-```bash
-AZURE_OPENAI_API_KEY=""
-AZURE_OPENAI_ENDPOINT=""
-AZURE_OPENAI_MODEL=""
-AZURE_OPENAI_API_VERSION=""
-```
+3. Provision the OpenAI account:
 
-4) Deploy the application using the Azure Developer CLI
+    ```shell
+    azd provision
+    ```
 
-```bash
-azd up
-```
+    It will prompt you to provide an `azd` environment name (like "productivity-app"), select a subscription from your Azure account, and select a [location where the OpenAI model is available](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#standard-deployment-model-availability). For this project we recommend "canadaeast". Then it will provision the resources in your account and deploy the latest code. If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource. To change the location run: 
 
-5) ⏳ Wait until the deployment has finished and navigate to the URL provided in the output to access the app.
+    ```shell
+    azd env set AZURE_LOCATION "yournewlocationname"
+    ```
 
-## Running the app locally within a virtual environment
-To run this Python app using a virtual environment (venv), follow these steps:
+4. When `azd` has finished, you should have an OpenAI account you can use locally when logged into your Azure account. You can output the necessary environment variables into an `.env` file like so:
 
-1) Clone this repository to your local machine.
+    ```shell
+    azd env get-values > .env
+    ```
 
-2) Navigate to the directory where your project is located within your terminal.
-
-```bash
-cd path/to/your/project
-```
-
-3) Create a new virtual environment using the venv module. This will create a new directory named venv (or any name you choose) in your current directory.
+5. Create a new virtual environment using the venv module. This will create a new directory named venv (or any name you choose) in your current directory.
 
 ```bash
 python3 -m venv venv
 ```
 
-4) Activate the virtual environment. This changes your shell's environment variables so that running Python will get you this environment's Python and pip.
+6. Activate the virtual environment. This changes your shell's environment variables so that running Python will get you this environment's Python and pip.
 
 ```bash
 source .venv/bin/activate
 ```
 
-5) Install the necessary dependencies using pip. This will install the packages in the virtual environment, isolated from your global Python environment.
+7. Install the necessary dependencies using pip. This will install the packages in the virtual environment, isolated from your global Python environment.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-6) Create a gpt deployment in Azure OpenAI and get the API key. Once you have all of the credentials needed, create and add them to a `.env` file in the root of the project.
-
-```bash
-AZURE_OPENAI_API_KEY=""
-AZURE_OPENAI_ENDPOINT=""
-AZURE_OPENAI_MODEL=""
-AZURE_OPENAI_API_VERSION=""
-```
-
-7) Run the app using the uvicorn server. This will start the server on port 8080, and you can access the app by navigating to http://localhost:8080 in your browser.
+8. Run the app using the uvicorn server. This will start the server on port 8080, and you can access the app by navigating to http://localhost:8080 in your browser.
 
 ```bash
 make run
 ```
+
+## Deploy the application with the Azure Developer CLI
+
+The local server provided by FastAPI is useful for testing but should not be used in production. Using the Azure Developer CLI, you can also deploy the app to Azure Container Instances. 
+
+To do so you can run: 
+```bash
+azd up
+```
+
+⏳ Wait until the deployment has finished and navigate to the URL provided in the output to access the app.
 
 ## Example of using the app 
 
