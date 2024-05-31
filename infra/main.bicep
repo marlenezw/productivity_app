@@ -34,6 +34,12 @@ param environmentName string
 })
 param location string
 
+param productivityAppExists bool
+@secure()
+param productivityAppDefinition object
+
+var abbrs = loadJsonContent('./abbreviations.json')
+
 @description('Name of the OpenAI resource group. If not specified, the resource group name will be generated.')
 param openAiResourceGroupName string = ''
 
@@ -112,9 +118,81 @@ module openAiRoleUser 'core/security/role.bicep' = {
   }
 }
 
+module monitoring './shared/monitoring.bicep' = {
+  name: 'monitoring'
+  params: {
+    location: location
+    tags: tags
+    logAnalyticsName: '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    applicationInsightsName: '${abbrs.insightsComponents}${resourceToken}'
+  }
+  scope: resourceGroup
+}
+
+module dashboard './shared/dashboard-web.bicep' = {
+  name: 'dashboard'
+  params: {
+    name: '${abbrs.portalDashboards}${resourceToken}'
+    applicationInsightsName: monitoring.outputs.applicationInsightsName
+    location: location
+    tags: tags
+  }
+  scope: resourceGroup
+}
+
+module registry './shared/registry.bicep' = {
+  name: 'registry'
+  params: {
+    location: location
+    tags: tags
+    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+  }
+  scope: resourceGroup
+}
+
+module keyVault './shared/keyvault.bicep' = {
+  name: 'keyvault'
+  params: {
+    location: location
+    tags: tags
+    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    principalId: principalId
+  }
+  scope: resourceGroup
+}
+
+module appsEnv './shared/apps-env.bicep' = {
+  name: 'apps-env'
+  params: {
+    name: '${abbrs.appManagedEnvironments}${resourceToken}'
+    location: location
+    tags: tags
+    applicationInsightsName: monitoring.outputs.applicationInsightsName
+    logAnalyticsWorkspaceName: monitoring.outputs.logAnalyticsWorkspaceName
+  }
+  scope: resourceGroup
+}
+
+module productivityApp './app/productivity_app.bicep' = {
+  name: 'productivity_app'
+  params: {
+    name: '${abbrs.appContainerApps}productivity-${resourceToken}'
+    location: location
+    tags: tags
+    identityName: '${abbrs.managedIdentityUserAssignedIdentities}productivity-${resourceToken}'
+    applicationInsightsName: monitoring.outputs.applicationInsightsName
+    containerAppsEnvironmentName: appsEnv.outputs.name
+    containerRegistryName: registry.outputs.name
+    exists: productivityAppExists
+    appDefinition: productivityAppDefinition
+  }
+  scope: resourceGroup
+}
+
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
 output AZURE_RESOURCE_GROUP string = resourceGroup.name
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 
 // Specific to Azure OpenAI
 output AZURE_OPENAI_SERVICE string = openAi.outputs.name
